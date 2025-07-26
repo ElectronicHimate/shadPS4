@@ -74,12 +74,6 @@ struct AddressSpace::Impl {
                                                           MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
                                                           PAGE_NOACCESS, &param, 1));
             if (virtual_base) {
-                break;
-            }
-            virtual_size -= ReductionOnFail;
-        }
-        ASSERT_MSG(virtual_base, "Unable to reserve virtual address space: {}",
-                   Common::GetLastErrorMsg());
 
         system_reserved_base = reinterpret_cast<u8*>(SYSTEM_RESERVED_MIN);
         system_reserved_size = SystemReservedSize;
