@@ -73,12 +73,8 @@ struct AddressSpace::Impl {
             virtual_base = static_cast<u8*>(VirtualAlloc2(process, NULL, virtual_size,
                                                           MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
                                                           PAGE_NOACCESS, &param, 1));
-            if (virtual_base) {
-                break;
-            }
-            virtual_size -= ReductionOnFail;
-            }
-            
+            if (virtual_size) {
+
         system_reserved_base = reinterpret_cast<u8*>(SYSTEM_RESERVED_MIN);
         system_reserved_size = SystemReservedSize;
         system_managed_base = virtual_base;
