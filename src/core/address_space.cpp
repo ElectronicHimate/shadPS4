@@ -74,6 +74,7 @@ struct AddressSpace::Impl {
                                                           MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
                                                           PAGE_NOACCESS, &param, 1));
             if (virtual_base) {
+            }   
             virtual_size -= ReductionOnFail;
             }
             
