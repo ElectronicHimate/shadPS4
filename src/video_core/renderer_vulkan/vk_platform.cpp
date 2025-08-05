@@ -195,7 +195,7 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
     LOG_ERROR(Render_Vulkan, "Failed to query layer properties: {}",
               vk::to_string(properties_result));
     return {};
-}
+    }
 
     std::vector<const char*> layers;
     layers.reserve(2);
@@ -225,7 +225,29 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
 vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
                                   bool enable_crash_diagnostic) {
     LOG_INFO(Render_Vulkan, "Creating vulkan instance");
+// Add the extension name to a list of required instance extensions
+std::vector<const char*> instanceExtensions;
+instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
+// Now, when creating the VkInstance...
+VkInstanceCreateInfo createInfo{};
+// ...
+createInfo.ppEnabledExtensionNames = instanceExtensions.data();
+createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
+// Function pointer declaration
+PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
+
+// After creating the VkInstance, get the function pointer
+vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT");
+
+// You should check if it's not null before using it
+if (vkSetDebugUtilsObjectNameEXT) {
+    // It's safe to call the function now
+    vkSetDebugUtilsObjectNameEXT(...);
+} else {
+    // The extension or layer was not enabled, so we can't use it
+}
+    
 #ifdef __APPLE__
 #ifndef ENABLE_QT_GUI
     // Initialize the environment with the path to the MoltenVK ICD, so that the loader will
