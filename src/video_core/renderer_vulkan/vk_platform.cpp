@@ -197,6 +197,18 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
     return {};
 }
 
+    // Sanitize layer list
+    std::vector<const char*> layers;
+    //layers.reserve(2);
+
+    if (enable_validation) {
+        layers.push_back(VALIDATION_LAYER_NAME);
+    }
+    if (enable_crash_diagnostic) {
+        layers.push_back(CRASH_DIAGNOSTIC_LAYER_NAME);
+    }
+}
+
 vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
                                   bool enable_crash_diagnostic) {
     LOG_INFO(Render_Vulkan, "Creating vulkan instance");
