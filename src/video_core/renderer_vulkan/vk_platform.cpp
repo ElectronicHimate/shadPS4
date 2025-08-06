@@ -207,6 +207,10 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
         layers.push_back(CRASH_DIAGNOSTIC_LAYER_NAME);
     }
 
+    vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
+                                  bool enable_crash_diagnostic) {
+    LOG_INFO(Render_Vulkan, "Creating vulkan instance");
+
 #ifdef __APPLE__
 #ifndef ENABLE_QT_GUI
     // Initialize the environment with the path to the MoltenVK ICD, so that the loader will
