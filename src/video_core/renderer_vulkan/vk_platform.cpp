@@ -187,15 +187,15 @@ std::vector<const char*> GetInstanceExtensions(Frontend::WindowSystemType window
 
 std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_crash_diagnostic) {
     const auto [properties_result, properties] = vk::enumerateInstanceLayerProperties();
-    if (properties_result != vk::Result::eSuccess) {
-    LOG_ERROR(Render_Vulkan, "Failed to query layer properties: {}",
-              vk::to_string(properties_result));
-    return {};
-}
+    if (properties_result != vk::Result::eSuccess || properties.empty()) {
+        LOG_ERROR(Render_Vulkan, "Failed to query layer properties: {}",
+                  vk::to_string(properties_result));
+        return {};
+    }
 
-    // Sanitize layer list
     std::vector<const char*> layers;
-    //layers.reserve(2);
+    layers.reserve(2);
+
     if (enable_validation) {
         layers.push_back(VALIDATION_LAYER_NAME);
     }
@@ -203,8 +203,19 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
         layers.push_back(CRASH_DIAGNOSTIC_LAYER_NAME);
     }
 
+    // Sanitize layer list
+    std::erase_if(layers, [&](const char* layer) -> bool {
+        const auto it = std::ranges::find_if(properties, [layer](const auto& prop) {
+            return std::strcmp(layer, prop.layerName) == 0;
+        });
+        if (it == properties.end()) {
+            LOG_ERROR(Render_Vulkan, "Requested layer {} is not available", layer);
+            return true;
+        }
+        return false;
+    });
+
     return layers;
-    
 }
 
 vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
