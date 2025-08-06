@@ -195,7 +195,7 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
     LOG_ERROR(Render_Vulkan, "Failed to query layer properties: {}",
               vk::to_string(properties_result));
     return {};
-    }
+}
 
 vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
                                   bool enable_crash_diagnostic) {
