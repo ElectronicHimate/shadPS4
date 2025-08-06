@@ -197,103 +197,31 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
     return {};
     }
 
-    std::vector<const char*> layers;
-    layers.reserve(2);
-
-    if (enable_validation) {
-        layers.push_back(VALIDATION_LAYER_NAME);
-    }
-    if (enable_crash_diagnostic) {
-        layers.push_back(CRASH_DIAGNOSTIC_LAYER_NAME);
-    }
-
-    // Sanitize layer list
-    std::erase_if(layers, [&](const char* layer) -> bool {
-        const auto it = std::ranges::find_if(properties, [layer](const auto& prop) {
-            return std::strcmp(layer, prop.layerName) == 0;
-        });
-        if (it == properties.end()) {
-            LOG_ERROR(Render_Vulkan, "Requested layer {} is not available", layer);
-            return true;
-        }
-        return false;
-    });
-
-    return layers;
-}
-
-vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
-                                  bool enable_crash_diagnostic) {
+bool enable_crash_diagnostic) {
     LOG_INFO(Render_Vulkan, "Creating vulkan instance");
-// --- Header File Example (e.g., VulkanApplication.h) ---
-class VulkanApplication {
-private:
-    vk::UniqueInstance instance;
-    // ... other Vulkan member variables
+// Add the extension name to a list of required instance extensions
+std::vector<const char*> instanceExtensions;
+instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-    // Declare the function pointer as a member variable
-    PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
+// Now, when creating the VkInstance...
+VkInstanceCreateInfo createInfo{};
+// ...
+createInfo.ppEnabledExtensionNames = instanceExtensions.data();
+createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
+// Function pointer declaration
+PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
 
-public:
-    void Initialize();
-    void SetDebugName(vk::Buffer buffer, const char* name);
-    // ... other methods
-};
+// After creating the VkInstance, get the function pointer
+vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(instance, "vkSetDebugUtilsObjectNameEXT");
 
-
-// --- Implementation File Example (e.g., VulkanApplication.cpp) ---
-
-vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
-                                  bool enable_crash_diagnostic);
-
-void VulkanApplication::Initialize()
-    {
-    // Call the instance creation function
-    this->instance = CreateInstance(Frontend::WindowSystemType::kWin32, true, false);
-
-    // After the instance is created, we can get the function pointer.
-    // We only get it if the instance was successfully created and valid.
-    if (this->instance)
-    {
-        this->vkSetDebugUtilsObjectNameEXT =
-            (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(
-                this->instance.get(), "vkSetDebugUtilsObjectNameEXT"
-            );
-        
-        // It's good practice to check if the pointer is not null
-        if (!this->vkSetDebugUtilsObjectNameEXT) {
-            LOG_WARNING(Render_Vulkan, "Could not load vkSetDebugUtilsObjectNameEXT, debug names will not work.");
-        }
-    } else
-    {
-        LOG_FATAL(Render_Vulkan, "Failed to initialize Vulkan instance.");
-    }
-
-    // Now that the function pointer is loaded, you can call it from anywhere in this class.
-    // For example, here's how you might name a queue.
-    // Make sure to pass a valid object handle.
-    // if (this->vkSetDebugUtilsObjectNameEXT) {
-    //    VkDebugUtilsObjectNameInfoEXT nameInfo{};
-    //    nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-    //    nameInfo.objectType = VK_OBJECT_TYPE_QUEUE;
-    //    nameInfo.objectHandle = (uint64_t)queue;
-    //    nameInfo.pObjectName = "Main Render Queue";
-    //    this->vkSetDebugUtilsObjectNameEXT(this->instance.get(), &nameInfo);
-    // }
+// You should check if it's not null before using it
+if (vkSetDebugUtilsObjectNameEXT) {
+    // It's safe to call the function now
+    vkSetDebugUtilsObjectNameEXT
+} else {
+    // The extension or layer was not enabled, so we can't use it
 }
 
-// A helper function to call the loaded function pointer
-void VulkanApplication::SetDebugName(vk::Buffer buffer, const char* name) {
-    if (this->vkSetDebugUtilsObjectNameEXT) {
-        VkDebugUtilsObjectNameInfoEXT nameInfo{};
-        nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-        nameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
-        nameInfo.objectHandle = (uint64_t)buffer;
-        nameInfo.pObjectName = name;
-        this->vkSetDebugUtilsObjectNameEXT(this->instance.get(), &nameInfo);
-    }
-}
-    
 #ifdef __APPLE__
 #ifndef ENABLE_QT_GUI
     // Initialize the environment with the path to the MoltenVK ICD, so that the loader will
