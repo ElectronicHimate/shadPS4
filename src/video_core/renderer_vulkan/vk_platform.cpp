@@ -206,20 +206,9 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
     if (enable_crash_diagnostic) {
         layers.push_back(CRASH_DIAGNOSTIC_LAYER_NAME);
     }
-}
-    
-    const auto it = std::ranges::find_if(properties, [layer](const auto& prop) {
-    return std::strcmp(layer, prop.layerName) == 0;
-        });
-        if (it == properties.end()) {
-            LOG_ERROR(Render_Vulkan, "Requested layer {} is not available", layer);
-            return true;
-        }
-        return false;
-    });
 
     return layers;
-
+    
 }
 
 vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
