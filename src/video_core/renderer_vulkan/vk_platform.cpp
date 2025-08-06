@@ -200,13 +200,14 @@ std::vector<const char*> GetInstanceLayers(bool enable_validation, bool enable_c
     // Sanitize layer list
     std::vector<const char*> layers;
     //layers.reserve(2);
-
     if (enable_validation) {
         layers.push_back(VALIDATION_LAYER_NAME);
     }
     if (enable_crash_diagnostic) {
         layers.push_back(CRASH_DIAGNOSTIC_LAYER_NAME);
     }
+}
+    
     const auto it = std::ranges::find_if(properties, [layer](const auto& prop) {
     return std::strcmp(layer, prop.layerName) == 0;
         });
