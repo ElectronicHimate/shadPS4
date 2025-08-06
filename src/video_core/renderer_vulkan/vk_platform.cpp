@@ -246,13 +246,15 @@ public:
 vk::UniqueInstance CreateInstance(Frontend::WindowSystemType window_type, bool enable_validation,
                                   bool enable_crash_diagnostic);
 
-void VulkanApplication::Initialize() {
+void VulkanApplication::Initialize()
+    {
     // Call the instance creation function
     this->instance = CreateInstance(Frontend::WindowSystemType::kWin32, true, false);
 
     // After the instance is created, we can get the function pointer.
     // We only get it if the instance was successfully created and valid.
-    if (this->instance) {
+    if (this->instance)
+    {
         this->vkSetDebugUtilsObjectNameEXT =
             (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(
                 this->instance.get(), "vkSetDebugUtilsObjectNameEXT"
@@ -262,7 +264,8 @@ void VulkanApplication::Initialize() {
         if (!this->vkSetDebugUtilsObjectNameEXT) {
             LOG_WARNING(Render_Vulkan, "Could not load vkSetDebugUtilsObjectNameEXT, debug names will not work.");
         }
-    } else {
+    } else
+    {
         LOG_FATAL(Render_Vulkan, "Failed to initialize Vulkan instance.");
     }
 
