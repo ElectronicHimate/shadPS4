@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'push' }}
 
 env:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Debug
 
 jobs:
   reuse:
