@@ -135,8 +135,8 @@ struct AddressSpace::Impl {
 
     void* Map(VAddr virtual_addr, PAddr phys_addr, size_t size, ULONG prot, uintptr_t fd = 0) {
         // Before mapping we must carve a placeholder with the exact properties of our mapping.
-        auto* region = EnsureSplitRegionForMapping(virtual_addr, size);
-        region->is_mapped = true;
+       // auto* region = EnsureSplitRegionForMapping(virtual_addr, size);
+       // region->is_mapped = true;
         void* ptr = nullptr;
         if (phys_addr != -1) {
             HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
@@ -181,16 +181,6 @@ struct AddressSpace::Impl {
 
     // The following code is inspired from Dolphin's MemArena
     // https://github.com/dolphin-emu/dolphin/blob/deee3ee4/Source/Core/Common/MemArenaWin.cpp#L212
-    MemoryRegion* EnsureSplitRegionForMapping(VAddr address, size_t size) {
-        // Find closest region that is <= the given address by using upper bound and decrementing
-        auto it = regions.upper_bound(address);
-        ASSERT_MSG(it != regions.begin(), "Invalid address {:#x}", address);
-        --it;
-        ASSERT_MSG(!it->second.is_mapped,
-                   "Attempt to map {:#x} with size {:#x} which overlaps with {:#x} mapping",
-                   address, size, it->second.base);
-        auto& [base, region] = *it;
-
         const VAddr mapping_address = region.base;
         const size_t region_size = region.size;
         if (mapping_address == address) {
@@ -202,13 +192,6 @@ struct AddressSpace::Impl {
             ASSERT_MSG(region_size >= size,
                        "Region with address {:#x} and size {:#x} can't fit {:#x}", mapping_address,
                        region_size, size);
-
-            // Split the placeholder.
-            if (!VirtualFreeEx(process, LPVOID(address), size,
-                               MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
-                UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
-                return nullptr;
-            }
 
             // Update tracked mappings and return the first of the two
             region.size = size;
@@ -224,13 +207,6 @@ struct AddressSpace::Impl {
         const size_t offset_in_region = address - mapping_address;
         const size_t minimum_size = size + offset_in_region;
         ASSERT(region_size >= minimum_size);
-
-        // Split the placeholder.
-        if (!VirtualFreeEx(process, LPVOID(address), size,
-                           MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
-            UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
-            return nullptr;
-        }
 
         // Do we now have two regions or three regions?
         if (region_size == minimum_size) {
