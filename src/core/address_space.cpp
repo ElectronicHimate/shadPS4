@@ -150,14 +150,16 @@ struct AddressSpace::Impl {
                 ret = VirtualProtect(ptr, size, prot, &resultvar);
                 ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
-                            ptr =
-                VirtualAlloc2(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                              MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
+                ptr = MapViewOfFile3(backing, process, reinterpret_cast<PVOID>(virtual_addr),
+                                     phys_addr, size, MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
             }
         } else {
-                ptr = MapViewOfFile3(backing_handle, process, reinterpret_cast<PVOID>(virtual_addr),
-                                     phys_addr, size, MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
+            ptr =
+                VirtualAlloc2(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                              MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
         }
+        ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
+        return ptr;
     }
 
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
@@ -378,7 +380,7 @@ struct AddressSpace::Impl {
 
         constexpr int protection_flags = PROT_READ | PROT_WRITE;
         constexpr int base_map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
-#if defined(__APPLE__) && defined(ARCH_X86_64)
+#if defined(_WIN32) && defined(ARCH_X86_64)
         // On ARM64 Macs under Rosetta 2, we run into limitations due to the commpage from
         // 0xFC0000000 - 0xFFFFFFFFF and the GPU carveout region from 0x1000000000 - 0x6FFFFFFFFF.
         // We can allocate the system managed region, as well as system reserved if reduced in size
