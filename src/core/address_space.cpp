@@ -158,8 +158,6 @@ struct AddressSpace::Impl {
                 VirtualAlloc2(process, reinterpret_cast<PVOID>(virtual_addr), size,
                               MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
         }
-        ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
-        return ptr;
     }
 
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
