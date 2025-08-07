@@ -19,7 +19,7 @@
 #include <sys/mman.h>
 #endif
 
-#if defined(__APPLE__) && defined(ARCH_X86_64)
+#if defined(_WIN32) && defined(ARCH_X86_64)
 // Reserve space for the system address space using a zerofill section.
 asm(".zerofill SYSTEM_MANAGED,SYSTEM_MANAGED,__SYSTEM_MANAGED,0x7FFBFC000");
 asm(".zerofill SYSTEM_RESERVED,SYSTEM_RESERVED,__SYSTEM_RESERVED,0x7C0004000");
@@ -158,6 +158,8 @@ struct AddressSpace::Impl {
                 VirtualAlloc2(process, reinterpret_cast<PVOID>(virtual_addr), size,
                               MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
         }
+        ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
+        return ptr;
     }
 
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
@@ -226,7 +228,8 @@ struct AddressSpace::Impl {
         // Split the placeholder.
         if (!VirtualFreeEx(process, LPVOID(address), size,
                            MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
-            return &it->second;
+            UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
+            return nullptr;
         }
 
         // Do we now have two regions or three regions?
