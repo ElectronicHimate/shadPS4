@@ -220,27 +220,6 @@ struct AddressSpace::Impl {
         if (!VirtualFreeEx(process, LPVOID(address), size,
                            MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
         }
-
-        // Do we now have two regions or three regions?
-        if (region_size == minimum_size) {
-            // Split into two; update tracked mappings and return the second one
-            region.size = offset_in_region;
-            it = regions.emplace_hint(std::next(it), address, MemoryRegion(address, size, false));
-            return &it->second;
-        } else {
-            // Split into three; update tracked mappings and return the middle one
-            region.size = offset_in_region;
-            const VAddr middle_mapping_start = address;
-            const size_t middle_mapping_size = size;
-            const VAddr after_mapping_start = address + size;
-            const size_t after_mapping_size = region_size - minimum_size;
-            it = regions.emplace_hint(std::next(it), after_mapping_start,
-                                      MemoryRegion(after_mapping_start, after_mapping_size, false));
-            it = regions.emplace_hint(
-                it, middle_mapping_start,
-                MemoryRegion(middle_mapping_start, middle_mapping_size, false));
-            return &it->second;
-        }
     }
 
     void JoinRegionsAfterUnmap(VAddr address, size_t size) {
