@@ -155,7 +155,7 @@ struct AddressSpace::Impl {
                               MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
             }
         } else {
-                ptr = MapViewOfFile3(process, reinterpret_cast<PVOID>(virtual_addr),
+                ptr = MapViewOfFile3(backing_handle, process, reinterpret_cast<PVOID>(virtual_addr),
                                      phys_addr, size, MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
         }
     }
