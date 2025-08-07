@@ -228,8 +228,7 @@ struct AddressSpace::Impl {
         // Split the placeholder.
         if (!VirtualFreeEx(process, LPVOID(address), size,
                            MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
-            UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
-            return nullptr;
+            return &it->second;
         }
 
         // Do we now have two regions or three regions?
