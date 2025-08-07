@@ -223,6 +223,13 @@ struct AddressSpace::Impl {
         const size_t minimum_size = size + offset_in_region;
         ASSERT(region_size >= minimum_size);
 
+        // Split the placeholder.
+        if (!VirtualFreeEx(process, LPVOID(address), size,
+                           MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
+            UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
+            return nullptr;
+        }
+
         // Do we now have two regions or three regions?
         if (region_size == minimum_size) {
             // Split into two; update tracked mappings and return the second one
