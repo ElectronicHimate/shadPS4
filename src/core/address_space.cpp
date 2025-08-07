@@ -203,6 +203,21 @@ struct AddressSpace::Impl {
                        "Region with address {:#x} and size {:#x} can't fit {:#x}", mapping_address,
                        region_size, size);
 
+            // Update tracked mappings and return the first of the two
+            region.size = size;
+            const VAddr new_mapping_start = address + size;
+            regions.emplace_hint(std::next(it), new_mapping_start,
+                                 MemoryRegion(new_mapping_start, region_size - size, false));
+            return &region;
+        }
+
+        ASSERT(mapping_address < address);
+
+        // Is there enough space to map this?
+        const size_t offset_in_region = address - mapping_address;
+        const size_t minimum_size = size + offset_in_region;
+        ASSERT(region_size >= minimum_size);
+
         // Split the placeholder.
         if (!VirtualFreeEx(process, LPVOID(address), size,
                            MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
