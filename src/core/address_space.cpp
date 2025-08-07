@@ -20,9 +20,10 @@
 #endif
 
 #if defined(_WIN32) && defined(ARCH_X86_64)
-// Reserve space for the system address space using a zerofill section.
-asm(".zerofill SYSTEM_MANAGED,SYSTEM_MANAGED,__SYSTEM_MANAGED,0x7FFBFC000");
-asm(".zerofill SYSTEM_RESERVED,SYSTEM_RESERVED,__SYSTEM_RESERVED,0x7C0004000");
+#pragma section(".system_managed_data", read, write, shared)
+extern "C" __declspec(allocate(".system_managed_data")) char SystemManagedData[0x7FFBFC000];
+#pragma section(".system_reserved_data", read, write, shared)
+extern "C" __declspec(allocate(".system_reserved_data")) char SystemReservedData[0x7C0004000];
 #endif
 
 namespace Core {
