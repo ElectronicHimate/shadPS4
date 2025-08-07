@@ -240,56 +240,6 @@ struct AddressSpace::Impl {
             it = regions.emplace_hint(std::next(it), address, MemoryRegion(address, size, false));
             return &it->second;
         } else {
-            // Split into three; update tracked mappings and return the middle one
-            region.size = offset_in_region;
-            const VAddr middle_mapping_start = address;
-            const size_t middle_mapping_size = size;
-            const VAddr after_mapping_start = address + size;
-            const size_t after_mapping_size = region_size - minimum_size;
-            it = regions.emplace_hint(std::next(it), after_mapping_start,
-                                      MemoryRegion(after_mapping_start, after_mapping_size, false));
-            it = regions.emplace_hint(
-                it, middle_mapping_start,
-                MemoryRegion(middle_mapping_start, middle_mapping_size, false));
-            return &it->second;
-        }
-    }
-
-    void JoinRegionsAfterUnmap(VAddr address, size_t size) {
-        // There should be a mapping that matches the request exactly, find it
-        auto it = regions.find(address);
-        ASSERT_MSG(it != regions.end() && it->second.size == size,
-                   "Invalid address/size given to unmap.");
-        auto& [base, region] = *it;
-        region.is_mapped = false;
-
-        // Check if a placeholder exists right before us.
-        auto it_prev = it != regions.begin() ? std::prev(it) : regions.end();
-        if (it_prev != regions.end() && !it_prev->second.is_mapped) {
-            const size_t total_size = it_prev->second.size + size;
-            if (!VirtualFreeEx(process, LPVOID(it_prev->first), total_size,
-                               MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS)) {
-                UNREACHABLE_MSG("Region coalescing failed: {}", Common::GetLastErrorMsg());
-            }
-
-            it_prev->second.size = total_size;
-            regions.erase(it);
-            it = it_prev;
-        }
-
-        // Check if a placeholder exists right after us.
-        auto it_next = std::next(it);
-        if (it_next != regions.end() && !it_next->second.is_mapped) {
-            const size_t total_size = it->second.size + it_next->second.size;
-            if (!VirtualFreeEx(process, LPVOID(it->first), total_size,
-                               MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS)) {
-                UNREACHABLE_MSG("Region coalescing failed: {}", Common::GetLastErrorMsg());
-            }
-
-            it->second.size = total_size;
-            regions.erase(it_next);
-        }
-    }
 
     void Protect(VAddr virtual_addr, size_t size, bool read, bool write, bool execute) {
         DWORD new_flags{};
