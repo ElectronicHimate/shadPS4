@@ -1,121 +1,59 @@
 # SPDX-FileCopyrightText: 2024 shadPS4 Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-name: Build and Release
+name: Windows-Qt
 
-on: [push, pull_request]
-
-concurrency:
-  group: ci-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
+on:
+  push:
+    branches: [ "patch-2" ]
+  pull_request:
+    branches: [ "patch-2" ]
 
 env:
   BUILD_TYPE: Release
 
 jobs:
-  reuse:
-    runs-on: ubuntu-24.04
-    continue-on-error: true
-    steps:
-    - uses: actions/checkout@v4
-    - uses: fsfe/reuse-action@v5
+  build:
+    runs-on: windows-latest
 
-  clang-format:
-    runs-on: ubuntu-24.04
-    continue-on-error: true
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
-    - name: Install
-      run: |
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository 'deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main'
-        sudo apt update
-        sudo apt install clang-format-19
-    - name: Build
-      env:
-        COMMIT_RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
-      run: ./.ci/clang-format.sh
-      
-  get-info:
-    runs-on: ubuntu-24.04
-    outputs:
-      date: ${{ steps.vars.outputs.date }}
-      shorthash: ${{ steps.vars.outputs.shorthash }}
-      fullhash: ${{ steps.vars.outputs.fullhash }}
-    steps:
-    - uses: actions/checkout@v4
-    - name: Get date and git hash
-      id: vars
-      run: |
-        echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-        echo "shorthash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-        echo "fullhash=$(git rev-parse HEAD)" >> $GITHUB_ENV
-        echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-        echo "shorthash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-        echo "fullhash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
-  windows-sdl:
-    runs-on: windows-2025
-    needs: get-info
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-
-    - name: Cache CMake Configuration
-      uses: actions/cache@v4
-      env:
-          cache-name: ${{ runner.os }}-sdl-ninja-cache-cmake-configuration
-      with:
-          path: | 
-            ${{github.workspace}}/build
-          key: ${{ env.cache-name }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**') }}
-          restore-keys: |
-            ${{ env.cache-name }}-
-
-    - name: Cache CMake Build
-      uses: hendrikmuhs/ccache-action@v1.2.18
-      env:
-          cache-name: ${{ runner.os }}-sdl-cache-cmake-build
-      with:
-        append-timestamp: false
-        key: ${{ env.cache-name }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**') }}
-
-    - name: Configure CMake
-      run: cmake --fresh -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE=ON -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --parallel $env:NUMBER_OF_PROCESSORS
-
-    - name: Upload Windows SDL artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: shadps4-win64-sdl-${{ needs.get-info.outputs.date }}-${{ needs.get-info.outputs.shorthash }}
-        path: ${{github.workspace}}/build/shadPS4.exe
-
-  windows-qt:
-    runs-on: windows-2025
-    needs: get-info
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
+          submodules: recursive
 
     - name: Setup Qt
       uses: jurplel/install-qt-action@v4
       with:
-        version: 6.9.1
+        version: 6.7.2
         host: windows
         target: desktop
-        arch: win64_msvc2022_64
+        arch: win64_msvc2019_64
         archives: qtbase qttools
-        modules: qtmultimedia
 
-    - name: Cache CMake Configuration
-      uses: actions/cache@v4
-      env:
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -T ClangCL -DENABLE_QT_GUI=ON
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --parallel
+
+    - name: Deploy
+      run: |
+        mkdir upload
+        move build/Release/shadPS4.exe upload
+        windeployqt --dir upload upload/shadPS4.exe
+        
+    - name: Get date and git hash
+      id: vars
+      shell: pwsh
+      run: |
+        echo "date=$(Get-Date -Format 'yyyy-MM-dd')" >> $env:GITHUB_OUTPUT
+        echo "shorthash=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
+
+    - name: Upload executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: shadps4-win64-qt-${{ steps.vars.outputs.date }}-${{ steps.vars.outputs.shorthash }}
+        path: upload      env:
           cache-name: ${{ runner.os }}-qt-ninja-cache-cmake-configuration
       with:
           path: | 
