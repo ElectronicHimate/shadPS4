@@ -30,7 +30,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 option(ENABLE_QT_GUI "Enable the Qt GUI. If not selected then the emulator uses a minimal SDL-based UI instead" OFF)
-option(ENABLE_DISCORD_RPC "Enable the Discord RPC integration" ON)
+option(ENABLE_DISCORD_RPC "Enable the Discord RPC integration" OFF)
 option(ENABLE_UPDATER "Enables the options to updater" ON)
 
 # First, determine whether to use CMAKE_OSX_ARCHITECTURES or CMAKE_SYSTEM_PROCESSOR.
