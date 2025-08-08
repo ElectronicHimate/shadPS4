@@ -77,7 +77,6 @@ struct AddressSpace::Impl {
             }   
             virtual_size -= ReductionOnFail;
             }
-        }
         
         system_reserved_base = reinterpret_cast<u8*>(SYSTEM_RESERVED_MIN);
         system_reserved_size = SystemReservedSize;
