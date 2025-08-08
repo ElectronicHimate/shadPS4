@@ -67,12 +67,10 @@ struct AddressSpace::Impl {
                                                           MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
                                                           PAGE_NOACCESS, &param, 1));
             if (virtual_base) {
-                break;
             }
             reduction += ReductionOnFail;
-        }
-        ASSERT_MSG(virtual_base, "Unable to reserve virtual address space!");
-
+            }
+        
         // Take the reduction off of the system managed area, and leave the others unchanged.
         system_managed_base = virtual_base;
         system_managed_size = SystemManagedSize - reduction;
