@@ -71,7 +71,6 @@ enum class PM4ItOpcode : u32 {
     IncrementDeCounter = 0x85,
     WaitOnCeCounter = 0x86,
     WaitOnDeCounterDiff = 0x88,
-    DrawIndexIndirectCountMulti = 0x9d,
 };
 
 } // namespace AmdGpu
