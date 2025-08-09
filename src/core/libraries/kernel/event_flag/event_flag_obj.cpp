@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <thread>
-
+#include <chrono>
 #include "core/libraries/error_codes.h"
 #include "event_flag_obj.h"
 
@@ -48,12 +48,12 @@ int EventFlagInternal::Wait(u64 bits, WaitMode wait_mode, ClearMode clear_mode, 
     }
 
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
-                       std::chrono::system_clock::now() - start)
-                       .count();
+                                        std::chrono::system_clock::now() - start)
+                                        .count();
     if (result != nullptr) {
         *result = m_bits;
     }
-
+  
     if (ptr_micros != nullptr) {
         *ptr_micros = (elapsed >= micros ? 0 : micros - elapsed);
     }
