@@ -527,6 +527,11 @@ set(PAD_LIB src/core/libraries/pad/pad.cpp
             src/core/libraries/pad/pad_errors.h
 )
 
+set(SYSTEM_GESTURE_LIB 
+            src/core/libraries/system_gesture/system_gesture.cpp
+            src/core/libraries/system_gesture/system_gesture.h
+)
+
 set(PNG_LIB src/core/libraries/libpng/pngdec.cpp
             src/core/libraries/libpng/pngdec.h
             src/core/libraries/libpng/pngdec_error.h
@@ -586,8 +591,11 @@ set(NP_LIBS src/core/libraries/np_common/np_common.cpp
             src/core/libraries/np_web_api/np_web_api.h
             src/core/libraries/np_party/np_party.cpp
             src/core/libraries/np_party/np_party.h
+            src/core/libraries/np_party/np_party_error.h
             src/core/libraries/np_auth/np_auth.cpp
             src/core/libraries/np_auth/np_auth.h
+            src/core/libraries/np_profiledialog/np_profiledialog.cpp
+            src/core/libraries/np_profiledialog/np_profiledialog.h
 )
 
 set(ZLIB_LIB src/core/libraries/zlib/zlib.cpp
@@ -679,6 +687,7 @@ set(COMMON src/common/logging/backend.cpp
            src/common/enum.h
            src/common/io_file.cpp
            src/common/io_file.h
+           src/common/lru_cache.h
            src/common/error.cpp
            src/common/error.h
            src/common/scope_exit.h
@@ -779,6 +788,7 @@ set(CORE src/core/aerolib/stubs.cpp
          ${SYSTEM_LIBS}
          ${HLE_LIBC_INTERNAL_LIB}
          ${PAD_LIB}
+         ${SYSTEM_GESTURE_LIB}
          ${VIDEOOUT_LIB}
          ${NP_LIBS}
          ${PNG_LIB}
@@ -924,6 +934,8 @@ set(VIDEO_CORE src/video_core/amdgpu/liverpool.cpp
                src/video_core/amdgpu/pm4_cmds.h
                src/video_core/amdgpu/pm4_opcodes.h
                src/video_core/amdgpu/resource.h
+               src/video_core/amdgpu/tiling.cpp
+               src/video_core/amdgpu/tiling.h
                src/video_core/amdgpu/types.h
                src/video_core/amdgpu/default_context.cpp
                src/video_core/buffer_cache/buffer.cpp
@@ -1125,7 +1137,7 @@ endif()
 create_target_directory_groups(shadps4)
 
 target_link_libraries(shadps4 PRIVATE magic_enum::magic_enum fmt::fmt toml11::toml11 tsl::robin_map xbyak::xbyak Tracy::TracyClient RenderDoc::API FFmpeg::ffmpeg Dear_ImGui gcn half::half ZLIB::ZLIB PNG::PNG)
-target_link_libraries(shadps4 PRIVATE Boost::headers GPUOpen::VulkanMemoryAllocator LibAtrac9 sirit Vulkan::Headers xxHash::xxhash Zydis::Zydis glslang::glslang SDL3::SDL3 pugixml::pugixml stb::headers libusb::usb)
+target_link_libraries(shadps4 PRIVATE Boost::headers GPUOpen::VulkanMemoryAllocator LibAtrac9 sirit Vulkan::Headers xxHash::xxhash Zydis::Zydis glslang::glslang SDL3::SDL3 pugixml::pugixml stb::headers libusb::usb lfreist-hwinfo::hwinfo)
 
 target_compile_definitions(shadps4 PRIVATE IMGUI_USER_CONFIG="imgui/imgui_config.h")
 target_compile_definitions(Dear_ImGui PRIVATE IMGUI_USER_CONFIG="${PROJECT_SOURCE_DIR}/src/imgui/imgui_config.h")
