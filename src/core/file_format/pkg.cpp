@@ -222,11 +222,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         // Decrypt Np stuff and overwrite.
         if (entry.id == 0x400 || entry.id == 0x401 || entry.id == 0x402 ||
             entry.id == 0x403) { // somehow 0x401 is not decrypting
-			int rsize = entry.size;
-			int msize = entry.size;
-			if(msize%16 != 0)
-				msize = msize - msize%16 + 16;
-            decNp.resize(msize);
+            decNp.resize(entry.size);
             if (!file.Seek(entry.offset)) {
                 failreason = "Failed to seek to PKG entry offset";
                 return false;
@@ -236,14 +232,13 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
             data.resize(entry.size);
             file.ReadRaw<u8>(data.data(), entry.size);
 
-            std::span<u8> cipherNp(data.data(), msize);
+            std::span<u8> cipherNp(data.data(), entry.size);
             std::array<u8, 64> concatenated_ivkey_dk3_;
             std::memcpy(concatenated_ivkey_dk3_.data(), &entry, sizeof(entry));
             std::memcpy(concatenated_ivkey_dk3_.data() + sizeof(entry), dk3_.data(), sizeof(dk3_));
             PKG::crypto.ivKeyHASH256(concatenated_ivkey_dk3_, ivKey);
             PKG::crypto.aesCbcCfb128DecryptEntry(ivKey, cipherNp, decNp);
 
-            decNp.resize(rsize);
             Common::FS::IOFile out(extract_path / "sce_sys" / name,
                                    Common::FS::FileAccessMode::Write);
             out.Write(decNp);
