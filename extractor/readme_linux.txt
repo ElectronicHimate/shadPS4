@@ -1,4 +1,4 @@
-1. pkg_extractor.AppImage
+1. pkg_extractor
 	
 	Can be called in command line.
 	The first argument is the path to the pkg file to extract.
