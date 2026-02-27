@@ -1,5 +1,0 @@
-cd ../../externals/cryptopp
-make
-mkdir -p ../../extractor/build/cryptopp/cryptopp
-cp ./libcryptopp.a ../../extractor/build/cryptopp/cryptopp/libcryptopp.a
-cd ../../extractor/build
