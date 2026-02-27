@@ -11,6 +11,7 @@
 #include "common/endian.h"
 #include "core/crypto/crypto.h"
 #include "pfs.h"
+#include "trp.h"
 
 struct PKGHeader {
     u32_be magic; // Magic
@@ -147,6 +148,7 @@ public:
 
 private:
     Crypto crypto;
+    TRP trp;
     u64 pkgSize = 0;
     char pkgTitleID[9];
     PKGHeader pkgheader;
