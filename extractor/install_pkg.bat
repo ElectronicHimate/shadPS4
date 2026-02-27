@@ -1,19 +1,18 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-set par=%2%
 set gamesDir="PATH_TO_GAMES_DIR"
 set addonsDir="PATH_TO_ADDONS_DIR"
 
 IF %gamesDir%=="PATH_TO_GAMES_DIR" (
 	echo You need to update gamesDir with the games path used by ShadPs4
-	IF NOT "%par%"=="--batch" pause
+	pause
 	exit 0
 )
 
 IF %addonsDir%=="PATH_TO_ADDONS_DIR" (
 	echo You need to update addonsDir with the addons path used by ShadPs4
-	IF NOT "%par%"=="--batch" pause
+	pause
 	exit 0
 )
 
@@ -38,4 +37,4 @@ IF %errorlevel%==0 (
 	%0\..\pkg_extractor.exe %1 !gamesDir!
 )
 
-IF NOT "%par%"=="--batch" pause
+pause
