@@ -59,9 +59,11 @@ void InitializeContext(CONTEXT* ctx, ThreadFunc func, void* arg,
 }
 #endif
 
-NativeThread::NativeThread() : native_handle{0} {}
+NativeThread::NativeThread() : native_handle{nullptr}, tid{0} {}
 
-NativeThread::~NativeThread() {}
+NativeThread::~NativeThread() {
+    this->Exit();
+}
 
 int NativeThread::Create(ThreadFunc func, void* arg, const ::Libraries::Kernel::PthreadAttr* attr) {
 #ifndef _WIN64
@@ -71,18 +73,25 @@ int NativeThread::Create(ThreadFunc func, void* arg, const ::Libraries::Kernel::
     pthread_attr_setstack(&pattr, attr->stackaddr_attr, attr->stacksize_attr);
     return pthread_create(pthr, &pattr, (PthreadFunc)func, arg);
 #else
-    CLIENT_ID clientId{};
-    INITIAL_TEB teb{};
-    CONTEXT ctx{};
+    
+    DWORD threadId = 0;
+    size_t stack_size = (attr && attr->stacksize_attr > 0) ? attr->stacksize_attr : 0;
 
-    clientId.UniqueProcess = GetCurrentProcess();
-    clientId.UniqueThread = GetCurrentThread();
+    native_handle = CreateThread(
+        nullptr,                   
+        stack_size,                
+        reinterpret_cast<LPTHREAD_START_ROUTINE>(func), 
+        arg,                       
+        0,                         
+        &threadId                  
+    );
 
-    InitializeTeb(&teb, attr);
-    InitializeContext(&ctx, func, arg, attr);
+    if (native_handle == nullptr) {
+        return -static_cast<int>(GetLastError());
+    }
 
-    return NtCreateThread(&native_handle, THREAD_ALL_ACCESS, nullptr, GetCurrentProcess(),
-                          &clientId, &ctx, &teb, false);
+    this->tid = threadId;
+    return 0;
 #endif
 }
 
@@ -94,25 +103,8 @@ void NativeThread::Exit() {
     tid = 0;
 
 #ifdef _WIN64
-    NtClose(native_handle);
+    CloseHandle(static_cast<HANDLE>(native_handle));
     native_handle = nullptr;
-
-    /* The Windows kernel will free the stack
-       given at thread creation via INITIAL_TEB
-       (StackAllocationBase) upon thread termination.
-
-       In earlier Windows versions (NT4 to Windows Server 2003),
-       you could get around this via disabling FreeStackOnTermination
-       on the TEB. This has been removed since then.
-
-       To avoid this, we must forcefully set the TEB
-       deallocation stack pointer to NULL so ZwFreeVirtualMemory fails
-       in the kernel and our stack is not freed.
-     */
-    auto* teb = reinterpret_cast<TEB*>(NtCurrentTeb());
-    teb->DeallocationStack = nullptr;
-
-    NtTerminateThread(nullptr, 0);
 #else
     // Disable and free the signal stack.
     constexpr stack_t sig_stack = {

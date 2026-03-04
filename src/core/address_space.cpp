@@ -27,7 +27,37 @@ asm(".zerofill SYSTEM_RESERVED,SYSTEM_RESERVED,__SYSTEM_RESERVED,0x7C0004000");
 
 namespace Core {
 
+<<<<<<< HEAD
 static constexpr size_t BackingSize = SCE_KERNEL_TOTAL_MEM_PRO;
+=======
+// Constants used for mapping address space.
+constexpr VAddr SYSTEM_MANAGED_MIN = 0x400000ULL;
+constexpr VAddr SYSTEM_MANAGED_MAX = 0x7FFFFBFFFULL;
+constexpr VAddr SYSTEM_RESERVED_MIN = 0x7FFFFC000ULL;
+#if defined(__APPLE__) && defined(ARCH_X86_64)
+// Commpage ranges from 0xFC0000000 - 0xFFFFFFFFF, so decrease the system reserved maximum.
+constexpr VAddr SYSTEM_RESERVED_MAX = 0x1FFFFFFFFFULL;
+// GPU-reserved memory ranges from 0x1000000000 - 0x6FFFFFFFFF, so increase the user minimum.
+constexpr VAddr USER_MIN = 0x1000000000ULL;
+#else
+constexpr VAddr SYSTEM_RESERVED_MAX = 0x7EFFFFFFFFULL;
+constexpr VAddr USER_MIN = 0x1000000000ULL;
+#endif
+#if defined(__linux__)
+// Linux maps the shadPS4 executable around here, so limit the user maximum
+constexpr VAddr USER_MAX = 0x54FFFFFFFFFFULL;
+#else
+constexpr VAddr USER_MAX = 0x5FFFFFFFFFFFULL;
+#endif
+
+// Constants for the sizes of the ranges in address space.
+static constexpr u64 SystemManagedSize = SYSTEM_MANAGED_MAX - SYSTEM_MANAGED_MIN + 1;
+static constexpr u64 SystemReservedSize = SYSTEM_RESERVED_MAX - SYSTEM_RESERVED_MIN + 1;
+static constexpr u64 UserSize = USER_MAX - USER_MIN + 1;
+
+// Required backing file size for mapping physical address space.
+static u64 BackingSize = ORBIS_KERNEL_TOTAL_MEM_DEV_PRO;
+>>>>>>> d39047a1 (•)
 
 #ifdef _WIN32
 
@@ -68,6 +98,7 @@ struct AddressSpace::Impl {
         static constexpr size_t ReductionOnFail = 1_GB;
         static constexpr size_t MaxReductions = 10;
 
+<<<<<<< HEAD
         size_t virtual_size = SystemManagedSize + SystemReservedSize + UserSize;
         for (u32 i = 0; i < MaxReductions; i++) {
             virtual_base = static_cast<u8*>(VirtualAlloc2(process, NULL, virtual_size,
@@ -77,10 +108,71 @@ struct AddressSpace::Impl {
                 break;
             }
             virtual_size -= ReductionOnFail;
+=======
+        // Get the RtlGetVersion function
+        s64(WINAPI * RtlGetVersion)(LPOSVERSIONINFOW);
+        *(FARPROC*)&RtlGetVersion = GetProcAddress(ntdll_handle, "RtlGetVersion");
+        ASSERT_MSG(RtlGetVersion, "failed to retrieve function pointer for RtlGetVersion");
+
+        // Call RtlGetVersion
+        RTL_OSVERSIONINFOW os_version_info{};
+        RtlGetVersion(&os_version_info);
+
+        u64 supported_user_max = USER_MAX;
+        static constexpr s32 Windows11BuildNumber = 22000;
+        if (os_version_info.dwBuildNumber < Windows11BuildNumber) {
+            // Windows 10 has an issue with VirtualAlloc2 on higher addresses.
+            // To prevent regressions, limit the maximum address we reserve for this platform.
+            supported_user_max = 0x1C00000000ULL;
+            LOG_WARNING(Core, "Windows 10 detected, reducing user max to {:#x} to avoid problems",
+                        supported_user_max);
+        }
+
+        VAddr next_addr = USER_MIN; 
+        MEMORY_BASIC_INFORMATION info{};
+
+        while (next_addr < 0x1C00000000ULL) {
+            if (!VirtualQuery(reinterpret_cast<PVOID>(next_addr), &info, sizeof(info))) {
+                break; 
+            }
+
+            if (info.State == MEM_FREE && info.RegionSize > 0x1000000) {
+                VAddr addr = Common::AlignUp(reinterpret_cast<VAddr>(info.BaseAddress), alignment);
+        
+                if (addr < 0x1C00000000ULL) {
+                    u64 local_size = info.RegionSize;
+                    if (addr + local_size > 0x1C00000000ULL) {
+                        local_size = 0x1C00000000ULL - addr;
+                    }
+                    
+                    local_size = Common::AlignDown(local_size, alignment);
+                   
+                    regions.emplace(addr, MemoryRegion{addr, local_size, false});
+                }
+            }
+            next_addr = reinterpret_cast<VAddr>(info.BaseAddress) + info.RegionSize; 
+>>>>>>> d39047a1 (•)
         }
         ASSERT_MSG(virtual_base, "Unable to reserve virtual address space: {}",
                    Common::GetLastErrorMsg());
 
+<<<<<<< HEAD
+=======
+        // Reserve all detected free regions.
+        for (auto const& [key, region] : regions) {
+            auto addr = static_cast<u8*>(VirtualAlloc2(
+                process, reinterpret_cast<PVOID>(region.base), region.size,
+                MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS, NULL, 0));
+            // All marked regions should reserve fine since they're free.
+            ASSERT_MSG(addr, "Unable to reserve virtual address space: {}",
+                       Common::GetLastErrorMsg());
+        }
+
+        // Set these constants to ensure code relying on them works.
+        // These do not fully encapsulate the state of the address space.
+        system_managed_base = reinterpret_cast<u8*>(regions.begin()->first);
+        system_managed_size = SystemManagedSize - (regions.begin()->first - SYSTEM_MANAGED_MIN);
+>>>>>>> d39047a1 (•)
         system_reserved_base = reinterpret_cast<u8*>(SYSTEM_RESERVED_MIN);
         system_reserved_size = SystemReservedSize;
         system_managed_base = virtual_base;
@@ -373,7 +465,11 @@ struct AddressSpace::Impl {
         user_size = UserSize;
 
         constexpr int protection_flags = PROT_READ | PROT_WRITE;
+<<<<<<< HEAD
         constexpr int base_map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
+=======
+        constexpr int map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
+>>>>>>> d39047a1 (•)
 #if defined(__APPLE__) && defined(ARCH_X86_64)
         // On ARM64 Macs under Rosetta 2, we run into limitations due to the commpage from
         // 0xFC0000000 - 0xFFFFFFFFF and the GPU carveout region from 0x1000000000 - 0x6FFFFFFFFF.
@@ -494,7 +590,7 @@ struct AddressSpace::Impl {
 
         // Return the adjusted pointers.
         void* ret = mmap(reinterpret_cast<void*>(start_address), end_address - start_address,
-                         PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+                         PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
     }
 

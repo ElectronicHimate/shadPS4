@@ -61,8 +61,6 @@ static void ExitThread() {
     curthread->tid.notify_all();
 
     curthread->native_thr.Exit();
-    UNREACHABLE();
-    /* Never reach! */
 }
 
 void PS4_SYSV_ABI posix_pthread_exit(void* status) {
@@ -285,8 +283,13 @@ int PS4_SYSV_ABI posix_pthread_create_name_np(PthreadT* thread, const PthreadAtt
 
     /* Return thread pointer eariler so that new thread can use it. */
     (*thread) = new_thread;
+    
+    new_thread->attr.stackaddr_attr = nullptr;
 
     /* Create thread */
+    new_thread->attr.flags = static_cast<PthreadAttrFlags>(0);
+    new_thread->attr.stacksize_attr = 0;
+
     new_thread->native_thr = Core::NativeThread();
     int ret = new_thread->native_thr.Create(RunThread, new_thread, &new_thread->attr);
     ASSERT_MSG(ret == 0, "Failed to create thread with error {}", ret);
