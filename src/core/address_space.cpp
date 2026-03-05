@@ -121,29 +121,13 @@ struct AddressSpace::Impl {
         u64 supported_user_max = USER_MAX;
         // This is the build number for Windows 11 22H2
         static constexpr s32 AffectedBuildNumber = 22621;
-<<<<<<< HEAD
 
-        // Higher PS4 firmware versions prevent higher address mappings too.
-        s32 sdk_ver = Common::ElfInfo::Instance().CompiledSdkVer();
-        if (os_version_info.dwBuildNumber <= AffectedBuildNumber ||
-            sdk_ver >= Common::ElfInfo::FW_30) {
-            supported_user_max = 0x10000000000ULL;
-            // Only log the message if we're restricting the user max due to operating system.
-            // Since higher compiled SDK versions also get reduced max, we don't need to log there.
-            if (sdk_ver < Common::ElfInfo::FW_30) {
-                LOG_WARNING(
-                    Core,
-                    "Older Windows version detected, reducing user max to {:#x} to avoid problems",
-                    supported_user_max);
-            }
-=======
         if (os_version_info.dwBuildNumber <= AffectedBuildNumber) {
             // Older Windows builds have an issue with VirtualAlloc2 on higher addresses.
             // To prevent regressions, limit the maximum address we reserve for this platform.
             supported_user_max = 0x1C00000000ULL;
             LOG_WARNING(Core, "Windows 10 detected, reducing user max to {:#x} to avoid problems",
                         supported_user_max);
->>>>>>> 489c5998 (•)
         }
 
         VAddr next_addr = USER_MIN; 
