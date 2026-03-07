@@ -27,9 +27,6 @@ asm(".zerofill USER_AREA,USER_AREA,__USER_AREA,0x5F9000000000");
 
 namespace Core {
 
-<<<<<<< HEAD
-static constexpr size_t BackingSize = ORBIS_KERNEL_TOTAL_MEM_DEV_PRO;
-=======
 // Constants used for mapping address space.
 constexpr VAddr SYSTEM_MANAGED_MIN = 0x400000ULL;
 constexpr VAddr SYSTEM_MANAGED_MAX = 0x7FFFFBFFFULL;
@@ -80,23 +77,11 @@ struct MemoryRegion {
 
 struct AddressSpace::Impl {
     Impl() : process{GetCurrentProcess()} {
-<<<<<<< HEAD
-        // Allocate virtual address placeholder for our address space.
-        MEM_ADDRESS_REQUIREMENTS req{};
-        MEM_EXTENDED_PARAMETER param{};
-        req.LowestStartingAddress = reinterpret_cast<PVOID>(SYSTEM_MANAGED_MIN);
-        // The ending address must align to page boundary - 1
-        // https://stackoverflow.com/questions/54223343/virtualalloc2-with-memextendedparameteraddressrequirements-always-produces-error
-        req.HighestEndingAddress = reinterpret_cast<PVOID>(USER_MIN + UserSize - 1);
-        req.Alignment = 0;
-        param.Type = MemExtendedParameterAddressRequirements;
-        param.Pointer = &req;
-=======
+
         // Determine the system's page alignment
         SYSTEM_INFO sys_info{};
         GetSystemInfo(&sys_info);
         u64 alignment = sys_info.dwAllocationGranularity;
->>>>>>> e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
 
         // Determine the host OS build number
         // Retrieve module handle for ntdll
@@ -170,16 +155,10 @@ struct AddressSpace::Impl {
         BackingSize += Config::getExtraDmemInMbytes() * 1_MB;
 
         // Allocate backing file that represents the total physical memory.
-<<<<<<< HEAD
-        backing_handle =
-            CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ,
-                               PAGE_READWRITE, SEC_COMMIT, BackingSize, nullptr, nullptr, 0);
-=======
         backing_handle = CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_ALL_ACCESS,
                                             PAGE_EXECUTE_READWRITE, SEC_COMMIT, BackingSize,
                                             nullptr, nullptr, 0);
 
->>>>>>> e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
         ASSERT_MSG(backing_handle, "{}", Common::GetLastErrorMsg());
         // Allocate a virtual memory for the backing file map as placeholder
         backing_base = static_cast<u8*>(VirtualAlloc2(process, nullptr, BackingSize,
