@@ -54,7 +54,6 @@ static constexpr u64 UserSize = USER_MAX - USER_MIN + 1;
 
 // Required backing file size for mapping physical address space.
 static u64 BackingSize = ORBIS_KERNEL_TOTAL_MEM_DEV_PRO;
->>>>>>> e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
 
 #ifdef _WIN32
 
@@ -150,9 +149,6 @@ struct AddressSpace::Impl {
         system_reserved_size = SystemReservedSize;
         user_base = reinterpret_cast<u8*>(USER_MIN);
         user_size = supported_user_max - USER_MIN - 1;
-
-        // Increase BackingSize to account for config options.
-        BackingSize += Config::getExtraDmemInMbytes() * 1_MB;
 
         // Allocate backing file that represents the total physical memory.
         backing_handle = CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_ALL_ACCESS,
