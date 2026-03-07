@@ -902,32 +902,30 @@ s32 MemoryManager::SetDirectMemoryType(VAddr addr, u64 size, s32 memory_type) {
 
     ASSERT_MSG(IsValidMapping(addr, size), "Attempted to access invalid address {:#x}", addr);
 
-    // Search through all VMAs covered by the provided range.
-    // We aren't modifying these VMAs, so it's safe to iterate through them.
     auto remaining_size = size;
     auto vma_handle = FindVMA(addr);
+    
     while (vma_handle != vma_map.end() && vma_handle->second.base < addr + size) {
-        // Direct and Pooled mappings are the only ones with a memory type.
-        if (vma_handle->second.type == VMAType::Direct ||
-            vma_handle->second.type == VMAType::Pooled) {
-            // Calculate position in vma
+        if (vma_handle->second.type == VMAType::Direct || vma_handle->second.type == VMAType::Pooled) {
             const auto start_in_vma = addr - vma_handle->second.base;
-            const auto size_in_vma = vma_handle->second.size - start_in_vma;
             auto phys_addr = vma_handle->second.phys_base + start_in_vma;
-            auto size_to_modify = remaining_size > size_in_vma ? size_in_vma : remaining_size;
+            
+            // You must actually fetch the dmem_area using the physical address here
+            auto dmem_area = CarveDmemArea(phys_addr, remaining_size); 
 
-    ASSERT_MSG(phys_addr <= dmem_area.GetEnd() && dmem_area.dma_type == DMAType::Mapped,
-               "Direct memory area is not mapped");
+            ASSERT_MSG(phys_addr <= dmem_area->second.GetEnd() && dmem_area->second.dma_type == DMAType::Mapped,
+                       "Direct memory area is not mapped");
 
-    dmem_area.memory_type = memory_type;
+            dmem_area->second.memory_type = memory_type;
+        }
+        vma_handle++;
+    }
 
     return ORBIS_OK;
 }
 
 void MemoryManager::NameVirtualRange(VAddr virtual_addr, u64 size, std::string_view name) {
-    // Sizes are aligned up to the nearest 16_KB
     auto aligned_size = Common::AlignUp(size, 16_KB);
-    // Addresses are aligned down to the nearest 16_KB
     auto aligned_addr = Common::AlignDown(virtual_addr, 16_KB);
 
     ASSERT_MSG(IsValidMapping(aligned_addr, aligned_size),
