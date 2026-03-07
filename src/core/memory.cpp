@@ -247,15 +247,9 @@ void MemoryManager::Free(PAddr phys_addr, u64 size) {
     MergeAdjacent(dmem_map, dmem_area);
 }
 
-<<<<<<< HEAD
-s32 MemoryManager::PoolCommit(VAddr virtual_addr, u64 size, MemoryProt prot) {
-    ASSERT_MSG(IsValidAddress(reinterpret_cast<void*>(virtual_addr)),
-               "Attempted to access invalid address {:#x}", virtual_addr);
-=======
 s32 MemoryManager::PoolCommit(VAddr virtual_addr, u64 size, MemoryProt prot, s32 mtype) {
     ASSERT_MSG(IsValidMapping(virtual_addr, size), "Attempted to access invalid address {:#x}",
                virtual_addr);
->>>>>>> e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
     std::scoped_lock lk{mutex};
 
     const u64 alignment = 64_KB;
@@ -473,16 +467,11 @@ s32 MemoryManager::MapFile(void** out_addr, VAddr virtual_addr, u64 size, Memory
     auto* h = Common::Singleton<Core::FileSys::HandleTable>::Instance();
 
     VAddr mapped_addr = (virtual_addr == 0) ? impl.SystemManagedVirtualBase() : virtual_addr;
-<<<<<<< HEAD
-    ASSERT_MSG(IsValidAddress(reinterpret_cast<void*>(mapped_addr)),
-               "Attempted to access invalid address {:#x}", mapped_addr);
-    const u64 size_aligned = Common::AlignUp(size, 16_KB);
-=======
+
     ASSERT_MSG(IsValidMapping(mapped_addr, size), "Attempted to access invalid address {:#x}",
                mapped_addr);
 
     std::scoped_lock lk{mutex};
->>>>>>> e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
 
     // Find first free area to map the file.
     if (False(flags & MemoryMapFlags::Fixed)) {
@@ -773,15 +762,9 @@ s32 MemoryManager::Protect(VAddr addr, u64 size, MemoryProt prot) {
 
     // Protect all VMAs between aligned_addr and aligned_addr + aligned_size.
     s64 protected_bytes = 0;
-<<<<<<< HEAD
-    while (protected_bytes < aligned_size) {
-        ASSERT_MSG(IsValidAddress(reinterpret_cast<void*>(aligned_addr)),
-                   "Attempted to access invalid address {:#x}", aligned_addr);
-        auto it = FindVMA(aligned_addr + protected_bytes);
-=======
+
     while (protected_bytes < size) {
         auto it = FindVMA(addr + protected_bytes);
->>>>>>> e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
         auto& vma_base = it->second;
         auto result = ProtectBytes(aligned_addr + protected_bytes, vma_base,
                                    aligned_size - protected_bytes, prot);
@@ -917,9 +900,6 @@ s32 MemoryManager::DirectQueryAvailable(PAddr search_start, PAddr search_end, u6
 s32 MemoryManager::SetDirectMemoryType(s64 phys_addr, s32 memory_type) {
     std::scoped_lock lk{mutex};
 
-<<<<<<< HEAD
-    auto& dmem_area = FindDmemArea(phys_addr)->second;
-=======
     ASSERT_MSG(IsValidMapping(addr, size), "Attempted to access invalid address {:#x}", addr);
 
     // Search through all VMAs covered by the provided range.
@@ -935,7 +915,6 @@ s32 MemoryManager::SetDirectMemoryType(s64 phys_addr, s32 memory_type) {
             const auto size_in_vma = vma_handle->second.size - start_in_vma;
             auto phys_addr = vma_handle->second.phys_base + start_in_vma;
             auto size_to_modify = remaining_size > size_in_vma ? size_in_vma : remaining_size;
->>>>>>> e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
 
     ASSERT_MSG(phys_addr <= dmem_area.GetEnd() && dmem_area.dma_type == DMAType::Mapped,
                "Direct memory area is not mapped");
@@ -992,16 +971,8 @@ s32 MemoryManager::GetDirectMemoryType(PAddr addr, s32* directMemoryTypeOut,
 }
 
 s32 MemoryManager::IsStack(VAddr addr, void** start, void** end) {
-<<<<<<< HEAD
-    ASSERT_MSG(IsValidAddress(reinterpret_cast<void*>(addr)),
-               "Attempted to access invalid address {:#x}", addr);
-    auto vma_handle = FindVMA(addr);
-
-    const VirtualMemoryArea& vma = vma_handle->second;
-=======
     ASSERT_MSG(IsValidMapping(addr), "Attempted to access invalid address {:#x}", addr);
     const auto& vma = FindVMA(addr)->second;
->>>>>>> e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
     if (vma.IsFree()) {
         return ORBIS_KERNEL_ERROR_EACCES;
     }
