@@ -216,7 +216,7 @@ s32 PS4_SYSV_ABI sceKernelMapDirectMemory2(void** addr, u64 len, s32 type, s32 p
 
     if (ret == 0) {
         auto* memory = Core::Memory::Instance();
-        memory->SetDirectMemoryType(phys_addr, type);
+        memory->SetDirectMemoryType(phys_addr, len, type);
     }
     return ret;
 }
@@ -481,7 +481,7 @@ s32 PS4_SYSV_ABI sceKernelMemoryPoolCommit(void* addr, u64 len, s32 type, s32 pr
     const VAddr in_addr = reinterpret_cast<VAddr>(addr);
     const auto mem_prot = static_cast<Core::MemoryProt>(prot);
     auto* memory = Core::Memory::Instance();
-    return memory->PoolCommit(in_addr, len, mem_prot);
+    return memory->PoolCommit(in_addr, len, mem_prot, 0);
 }
 
 s32 PS4_SYSV_ABI sceKernelMemoryPoolDecommit(void* addr, u64 len, s32 flags) {
