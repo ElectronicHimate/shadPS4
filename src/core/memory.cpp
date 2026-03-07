@@ -245,7 +245,6 @@ void MemoryManager::Free(PAddr phys_addr, u64 size) {
     area.dma_type = DMAType::Free;
     area.memory_type = 0;
     MergeAdjacent(dmem_map, dmem_area);
-}
 
 s32 MemoryManager::PoolCommit(VAddr virtual_addr, u64 size, MemoryProt prot, s32 mtype) {
     ASSERT_MSG(IsValidMapping(virtual_addr, size), "Attempted to access invalid address {:#x}",
