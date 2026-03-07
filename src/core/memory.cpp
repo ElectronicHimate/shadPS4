@@ -896,7 +896,7 @@ s32 MemoryManager::DirectQueryAvailable(PAddr search_start, PAddr search_end, u6
     return ORBIS_OK;
 }
 
-s32 MemoryManager::SetDirectMemoryType(s64 phys_addr, s32 memory_type) {
+s32 MemoryManager::SetDirectMemoryType(VAddr addr, u64 size, s32 memory_type) {
     std::scoped_lock lk{mutex};
 
     ASSERT_MSG(IsValidMapping(addr, size), "Attempted to access invalid address {:#x}", addr);
