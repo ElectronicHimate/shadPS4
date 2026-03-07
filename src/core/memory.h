@@ -251,7 +251,7 @@ public:
 
     void Free(PAddr phys_addr, u64 size);
 
-    s32 PoolCommit(VAddr virtual_addr, u64 size, MemoryProt prot);
+    s32 PoolCommit(VAddr virtual_addr, u64 size, MemoryProt prot, s32 mtype);
 
     s32 MapMemory(void** out_addr, VAddr virtual_addr, u64 size, MemoryProt prot,
                   MemoryMapFlags flags, VMAType type, std::string_view name = "anon",
@@ -283,7 +283,7 @@ public:
 
     s32 IsStack(VAddr addr, void** start, void** end);
 
-    s32 SetDirectMemoryType(s64 phys_addr, s32 memory_type);
+    s32 SetDirectMemoryType(VAddr addr, u64 size, s32 memory_type);
 
     void NameVirtualRange(VAddr virtual_addr, u64 size, std::string_view name);
 
