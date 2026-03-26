@@ -54,7 +54,7 @@ void InitializeContext(CONTEXT* ctx, ThreadFunc func, void* arg,
 }
 #endif
 
-NativeThread::NativeThread() : native_handle{nullptr}, tid{0} {}
+NativeThread::NativeThread() : native_handle{0}, tid{0} {}
 
 NativeThread::~NativeThread() {
     this->Exit();
