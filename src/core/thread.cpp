@@ -68,18 +68,12 @@ int NativeThread::Create(ThreadFunc func, void* arg, const ::Libraries::Kernel::
     pthread_attr_setstack(&pattr, attr->stackaddr_attr, attr->stacksize_attr);
     return pthread_create(pthr, &pattr, (PthreadFunc)func, arg);
 #else
-    
+
     DWORD threadId = 0;
     size_t stack_size = (attr && attr->stacksize_attr > 0) ? attr->stacksize_attr : 0;
 
-    native_handle = CreateThread(
-        nullptr,                   
-        stack_size,                
-        reinterpret_cast<LPTHREAD_START_ROUTINE>(func), 
-        arg,                       
-        0,                         
-        &threadId                  
-    );
+    native_handle = CreateThread(nullptr, stack_size,
+                                 reinterpret_cast<LPTHREAD_START_ROUTINE>(func), arg, 0, &threadId);
 
     if (native_handle == nullptr) {
         return -static_cast<int>(GetLastError());
