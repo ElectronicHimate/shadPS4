@@ -788,6 +788,7 @@ static bool PatchesIllegalInstructionHandler(void* context) {
             ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
             const auto status =
                 Common::Decoder::Instance()->decodeInstruction(instruction, operands, code_address);
+<<<<<<< HEAD
             if (ZYAN_SUCCESS(status) && instruction.mnemonic == ZydisMnemonic::ZYDIS_MNEMONIC_UD2)
                 [[unlikely]] {
                 UNREACHABLE_MSG("ud2 at code address {:#x}", reinterpret_cast<u64>(code_address));
@@ -796,6 +797,20 @@ static bool PatchesIllegalInstructionHandler(void* context) {
                             reinterpret_cast<u64>(code_address),
                             ZYAN_SUCCESS(status) ? ZydisMnemonicGetString(instruction.mnemonic)
                                                  : "Failed to decode");
+=======
+<<<<<<< HEAD
+            LOG_ERROR(Core, "Failed to patch address {:x} -- mnemonic: {}",
+                      reinterpret_cast<u64>(code_address),
+                      ZYAN_SUCCESS(status) ? ZydisMnemonicGetString(instruction.mnemonic)
+                                           : "Failed to decode");
+            return false;
+=======
+            LOG_TRACE(Core, "Failed to patch address {:x} -- mnemonic: {}",
+                            reinterpret_cast<u64>(code_address),
+                            ZYAN_SUCCESS(status) ? ZydisMnemonicGetString(instruction.mnemonic)
+                                                 : "Failed to decode");
+>>>>>>> 00cdcb07 (Remove unreachable on hitting ud2)
+>>>>>>> e95a919a (Remove unreachable on hitting ud2)
         }
     }
 
