@@ -35,11 +35,11 @@ constexpr VAddr SYSTEM_MANAGED_MAX = 0x7FFFFBFFFULL;
 constexpr VAddr SYSTEM_RESERVED_MIN = 0x7FFFFC000ULL;
 #if defined(__APPLE__) && defined(ARCH_X86_64)
 // Commpage ranges from 0xFC0000000 - 0xFFFFFFFFF, so decrease the system reserved maximum.
-constexpr VAddr SYSTEM_RESERVED_MAX = 0x1FFFFFFFFFULL;
+constexpr VAddr SYSTEM_RESERVED_MAX = 0xFBFFFFFFFULL;
 // GPU-reserved memory ranges from 0x1000000000 - 0x6FFFFFFFFF, so increase the user minimum.
-constexpr VAddr USER_MIN = 0x1000000000ULL;
+constexpr VAddr USER_MIN = 0x7000000000ULL;
 #else
-constexpr VAddr SYSTEM_RESERVED_MAX = 0x7EFFFFFFFFULL;
+constexpr VAddr SYSTEM_RESERVED_MAX = 0xFFFFFFFFFULL;
 constexpr VAddr USER_MIN = 0x1000000000ULL;
 #endif
 #if defined(__linux__)
