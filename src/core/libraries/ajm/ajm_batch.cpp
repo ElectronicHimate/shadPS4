@@ -165,7 +165,7 @@ AjmJob AjmStatisticsJobFromBatchBuffer(u32 instance_id, AjmBatchBuffer batch_buf
     ASSERT(job_flags.has_value());
     job.flags = job_flags.value();
 
-    AjmStatisticsJobFlags flags{.raw = job.flags.raw};
+    AjmStatisticsJobFlags flags(job.flags);
     if (input_control_buffer.has_value()) {
         AjmBatchBuffer input_batch(input_control_buffer.value());
         if (True(flags.statistics_flags & AjmStatisticsFlags::Engine)) {
