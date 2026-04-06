@@ -130,7 +130,7 @@ struct AddressSpace::Impl {
                         supported_user_max);
         }
 
-        VAddr next_addr = SYSTEM_MANAGED_MIN; 
+        VAddr next_addr = 0x400000000ULL; 
         MEMORY_BASIC_INFORMATION info{};
 
         while (next_addr < 0x3800000000ULL) {
