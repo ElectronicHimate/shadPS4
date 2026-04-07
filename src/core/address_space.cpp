@@ -133,7 +133,7 @@ struct AddressSpace::Impl {
         VAddr next_addr = 0x100000000ULL; 
         MEMORY_BASIC_INFORMATION info{};
 
-        while (next_addr < 0x3800000000ULL) {
+        while (next_addr < 0x3F00000000ULL) {
             if (!VirtualQuery(reinterpret_cast<PVOID>(next_addr), &info, sizeof(info))) {
                 break; 
             }
@@ -141,10 +141,10 @@ struct AddressSpace::Impl {
             if (info.State == MEM_FREE && info.RegionSize > 0x1000000) {
                 VAddr addr = Common::AlignUp(reinterpret_cast<VAddr>(info.BaseAddress), alignment);
         
-                if (addr < 0x3800000000ULL) {
+                if (addr < 0x3F00000000ULL) {
                     u64 local_size = info.RegionSize;
-                    if (addr + local_size > 0x3800000000ULL) {
-                        local_size = 0x3800000000ULL - addr;
+                    if (addr + local_size > 0x3F00000000ULL) {
+                        local_size = 0x3F00000000ULL - addr;
                     }
                     
                     local_size = Common::AlignDown(local_size, alignment);
