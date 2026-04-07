@@ -28,6 +28,7 @@ asm(".zerofill SYSTEM_RESERVED,SYSTEM_RESERVED,__SYSTEM_RESERVED,0x7C0004000");
 namespace Core {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 static constexpr size_t BackingSize = SCE_KERNEL_TOTAL_MEM_PRO;
 =======
 // Constants used for mapping address space.
@@ -58,6 +59,9 @@ static constexpr u64 UserSize = USER_MAX - USER_MIN + 1;
 // Required backing file size for mapping physical address space.
 static u64 BackingSize = ORBIS_KERNEL_TOTAL_MEM_DEV_PRO;
 >>>>>>> d39047a1 (•)
+=======
+static size_t BackingSize = ORBIS_KERNEL_TOTAL_MEM_DEV_PRO;
+>>>>>>> ae543737 (Update address_space.cpp)
 
 #ifdef _WIN32
 
@@ -99,6 +103,9 @@ struct AddressSpace::Impl {
         static constexpr size_t MaxReductions = 10;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ae543737 (Update address_space.cpp)
         size_t virtual_size = SystemManagedSize + SystemReservedSize + UserSize;
         for (u32 i = 0; i < MaxReductions; i++) {
             virtual_base = static_cast<u8*>(VirtualAlloc2(process, NULL, virtual_size,
@@ -108,6 +115,7 @@ struct AddressSpace::Impl {
                 break;
             }
             virtual_size -= ReductionOnFail;
+<<<<<<< HEAD
 =======
         // Get the RtlGetVersion function
         s64(WINAPI * RtlGetVersion)(LPOSVERSIONINFOW);
@@ -152,10 +160,13 @@ struct AddressSpace::Impl {
             }
             next_addr = reinterpret_cast<VAddr>(info.BaseAddress) + info.RegionSize; 
 >>>>>>> d39047a1 (•)
+=======
+>>>>>>> ae543737 (Update address_space.cpp)
         }
         ASSERT_MSG(virtual_base, "Unable to reserve virtual address space: {}",
                    Common::GetLastErrorMsg());
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
         // Reserve all detected free regions.
@@ -173,6 +184,8 @@ struct AddressSpace::Impl {
         system_managed_base = reinterpret_cast<u8*>(regions.begin()->first);
         system_managed_size = SystemManagedSize - (regions.begin()->first - SYSTEM_MANAGED_MIN);
 >>>>>>> d39047a1 (•)
+=======
+>>>>>>> ae543737 (Update address_space.cpp)
         system_reserved_base = reinterpret_cast<u8*>(SYSTEM_RESERVED_MIN);
         system_reserved_size = SystemReservedSize;
         system_managed_base = virtual_base;
@@ -466,10 +479,14 @@ struct AddressSpace::Impl {
 
         constexpr int protection_flags = PROT_READ | PROT_WRITE;
 <<<<<<< HEAD
+<<<<<<< HEAD
         constexpr int base_map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
 =======
         constexpr int map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
 >>>>>>> d39047a1 (•)
+=======
+        constexpr int base_map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
+>>>>>>> ae543737 (Update address_space.cpp)
 #if defined(__APPLE__) && defined(ARCH_X86_64)
         // On ARM64 Macs under Rosetta 2, we run into limitations due to the commpage from
         // 0xFC0000000 - 0xFFFFFFFFF and the GPU carveout region from 0x1000000000 - 0x6FFFFFFFFF.
@@ -590,7 +607,7 @@ struct AddressSpace::Impl {
 
         // Return the adjusted pointers.
         void* ret = mmap(reinterpret_cast<void*>(start_address), end_address - start_address,
-                         PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                         PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
         ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
     }
 
