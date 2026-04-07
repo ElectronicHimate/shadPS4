@@ -1266,10 +1266,6 @@ if (WIN32)
     else()
         target_link_options(shadps4 PRIVATE -Wl,--stack,2097152)
     endif()
-<<<<<<< HEAD
-
-=======
->>>>>>> parent of e7194af8 (Core: Increase address space limits and rework Windows address space initialization. (#3697))
 endif()
 
 if (WIN32)
