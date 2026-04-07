@@ -125,7 +125,7 @@ struct AddressSpace::Impl {
         if (os_version_info.dwBuildNumber <= AffectedBuildNumber) {
             // Older Windows builds have an issue with VirtualAlloc2 on higher addresses.
             // To prevent regressions, limit the maximum address we reserve for this platform.
-            supported_user_max = 0x3800000000ULL;
+            supported_user_max = 0x3F00000000ULL;
             LOG_WARNING(Core, "Windows 10 detected, reducing user max to {:#x} to avoid problems",
                         supported_user_max);
         }
