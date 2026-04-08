@@ -122,43 +122,51 @@ struct AddressSpace::Impl {
         // This is the build number for Windows 11 22H2
         static constexpr s32 AffectedBuildNumber = 22621;
 
-        if (os_version_info.dwBuildNumber <= AffectedBuildNumber) {
-            // Older Windows builds have an issue with VirtualAlloc2 on higher addresses.
-            // To prevent regressions, limit the maximum address we reserve for this platform.
+        // Higher PS4 firmware versions prevent higher address mappings too.
+        s32 sdk_ver = Common::ElfInfo::Instance().CompiledSdkVer();
+        if (os_version_info.dwBuildNumber <= AffectedBuildNumber ||
+            sdk_ver >= Common::ElfInfo::FW_30) {
             supported_user_max = 0x3F00000000ULL;
-            LOG_WARNING(Core, "Windows 10 detected, reducing user max to {:#x} to avoid problems",
-                        supported_user_max);
+            // Only log the message if we're restricting the user max due to operating system.
+            // Since higher compiled SDK versions also get reduced max, we don't need to log there.
+            if (sdk_ver < Common::ElfInfo::FW_30) {
+                LOG_WARNING(
+                    Core,
+                    "Older Windows version detected, reducing user max to {:#x} to avoid problems",
+                    supported_user_max);
+            }
         }
 
-        VAddr next_addr = 0x100000000ULL; 
+        // Determine the free address ranges we can access.
+        VAddr next_addr = 0x100000000ULL;
         MEMORY_BASIC_INFORMATION info{};
+        while (next_addr <= supported_user_max) {
+            ASSERT_MSG(VirtualQuery(reinterpret_cast<PVOID>(next_addr), &info, sizeof(info)),
+                       "Failed to query memory information for address {:#x}", next_addr);
 
-        while (next_addr < 0x3F00000000ULL) {
-            if (!VirtualQuery(reinterpret_cast<PVOID>(next_addr), &info, sizeof(info))) {
-                break; 
+            // Ensure logic uses values aligned to bage boundaries.
+            next_addr = reinterpret_cast<VAddr>(info.BaseAddress) + info.RegionSize;
+            next_addr = Common::AlignUp(next_addr, alignment);
+
+            // Prevent size from going past supported_user_max
+            u64 size = info.RegionSize;
+            if (next_addr > supported_user_max) {
+                size -= (next_addr - supported_user_max);
             }
+            size = Common::AlignDown(size, alignment);
 
+            // Check for free memory areas
+            // Restrict region size to avoid overly fragmenting the virtual memory space.
             if (info.State == MEM_FREE && info.RegionSize > 0x1000000) {
                 VAddr addr = Common::AlignUp(reinterpret_cast<VAddr>(info.BaseAddress), alignment);
-        
-                if (addr < 0x3F00000000ULL) {
-                    u64 local_size = info.RegionSize;
-                    if (addr + local_size > 0x3F00000000ULL) {
-                        local_size = 0x3F00000000ULL - addr;
-                    }
-                    
-                    local_size = Common::AlignDown(local_size, alignment);
-                   
-                    regions.emplace(addr, MemoryRegion{addr, local_size, false});
-                }
+                regions.emplace(addr, MemoryRegion{addr, size, false});
             }
-            next_addr = reinterpret_cast<VAddr>(info.BaseAddress) + info.RegionSize; 
         }
 
         // Reserve all detected free regions.
-        for (auto const& [key, region] : regions) {
+        for (auto region : regions) {
             auto addr = static_cast<u8*>(VirtualAlloc2(
-                process, reinterpret_cast<PVOID>(region.base), region.size,
+                process, reinterpret_cast<PVOID>(region.second.base), region.second.size,
                 MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS, NULL, 0));
             // All marked regions should reserve fine since they're free.
             ASSERT_MSG(addr, "Unable to reserve virtual address space: {}",
@@ -504,7 +512,7 @@ struct AddressSpace::Impl {
         user_size = UserSize;
 
         constexpr int protection_flags = PROT_READ | PROT_WRITE;
-        constexpr int map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
+        constexpr int map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED;
 #if defined(__APPLE__) && defined(ARCH_X86_64)
         // On ARM64 Macs, we run into limitations due to the commpage from 0xFC0000000 - 0xFFFFFFFFF
         // and the GPU carveout region from 0x1000000000 - 0x6FFFFFFFFF. Because this creates gaps
@@ -622,7 +630,7 @@ struct AddressSpace::Impl {
 
         // Return the adjusted pointers.
         void* ret = mmap(reinterpret_cast<void*>(start_address), end_address - start_address,
-                         PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                         PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
         ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
     }
 
