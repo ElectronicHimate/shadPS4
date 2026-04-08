@@ -34,7 +34,7 @@ constexpr VAddr USER_MAX = 0x3EFFFFFFFFULL;
 
 static constexpr size_t SystemManagedSize = SYSTEM_MANAGED_MAX - SYSTEM_MANAGED_MIN + 1;
 static constexpr size_t SystemReservedSize = SYSTEM_RESERVED_MAX - SYSTEM_RESERVED_MIN + 1;
-static constexpr size_t UserSize = 252ULL * 1024 * 1024 * 1024;
+static constexpr size_t UserSize = 0x3F00000000ULL;
 
 /**
  * Represents the user virtual address space backed by a dmem memory block
