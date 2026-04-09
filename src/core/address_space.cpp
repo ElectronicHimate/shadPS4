@@ -126,7 +126,7 @@ struct AddressSpace::Impl {
         s32 sdk_ver = Common::ElfInfo::Instance().CompiledSdkVer();
         if (os_version_info.dwBuildNumber <= AffectedBuildNumber ||
             sdk_ver >= Common::ElfInfo::FW_30) {
-            supported_user_max = 0x4000000000ULL;
+            supported_user_max = 0x7000000000ULL;
             // Only log the message if we're restricting the user max due to operating system.
             // Since higher compiled SDK versions also get reduced max, we don't need to log there.
             if (sdk_ver < Common::ElfInfo::FW_30) {
