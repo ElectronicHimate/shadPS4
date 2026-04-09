@@ -137,7 +137,7 @@ static ConfigEntry<int> volumeSlider(100);
 static ConfigEntry<bool> isNeo(false);
 static ConfigEntry<bool> isDevKit(false);
 static ConfigEntry<int> extraDmemInMbytes(0);
-static ConfigEntry<uint64_t> supportedUserMax("0x7000000000");
+static ConfigEntry<uint64_t> supportedUserMax(0x7000000000);
 static ConfigEntry<bool> isPSNSignedIn(false);
 static ConfigEntry<bool> isTrophyPopupDisabled(false);
 static ConfigEntry<double> trophyNotificationDuration(6.0);
@@ -1225,7 +1225,7 @@ void setDefaultValues(bool is_game_specific) {
     userName.set("shadPS4", is_game_specific);
     isShowSplash.set(false, is_game_specific);
     isSideTrophy.set("right", is_game_specific);
-    supportedUserMax.set("0x7000000000", is_game_specific);
+    supportedUserMax.set(0x7000000000, is_game_specific);
 
     // GS - Input
     cursorState.set(HideCursorState::Idle, is_game_specific);
