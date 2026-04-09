@@ -44,7 +44,6 @@ void NativeThread::Exit() {
     pthread_exit(nullptr);
 #endif
 }
-void NativeThread::Initialize() {
-}
+void NativeThread::Initialize() {}
 
 } // namespace Core
