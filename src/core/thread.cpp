@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 shadPS4 Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "libraries/kernel/threads/pthread.h"
+#include "core/libraries/kernel/threads/pthread.h"
 #include "thread.h"
 
 #ifdef _WIN64
