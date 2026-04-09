@@ -134,7 +134,7 @@ void setDevKitConsole(bool enable, bool is_game_specific = false);
 
 int getExtraDmemInMbytes();
 void setExtraDmemInMbytes(int value, bool is_game_specific = false);
-int getsupportedUserMax();
+uint64_t getsupportedUserMax();
 void setsupportedUserMax(uint64_t value, bool is_game_specific = false);
 bool getIsMotionControlsEnabled();
 void setIsMotionControlsEnabled(bool use, bool is_game_specific = false);
