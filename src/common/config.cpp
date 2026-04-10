@@ -64,9 +64,9 @@ std::optional<T> get_optional(const toml::value& v, const std::string& key) {
         if (it->second.is_boolean()) {
             return toml::get<bool>(it->second);
         }
-    } else if constexpr (std::is_same_v<T, uint64_t>) {
+    } else if constexpr (std::is_same_v<T, unsigned long long>) {
         if (it->second.is_integer()) {
-            return static_cast<uint64_t>(it->second.as_integer());
+            return static_cast<u64>(toml::get<unsigned long long>(it->second));
         }
     } else {
         static_assert([] { return false; }(), "Unsupported type in get_optional<T>");
@@ -137,7 +137,7 @@ static ConfigEntry<int> volumeSlider(100);
 static ConfigEntry<bool> isNeo(false);
 static ConfigEntry<bool> isDevKit(false);
 static ConfigEntry<int> extraDmemInMbytes(0);
-static ConfigEntry<uint64_t> supportedUserMax(0x7000000000);
+static ConfigEntry<u64> supportedUserMax(0x7000000000);
 static ConfigEntry<bool> isPSNSignedIn(false);
 static ConfigEntry<bool> isTrophyPopupDisabled(false);
 static ConfigEntry<double> trophyNotificationDuration(6.0);
@@ -313,11 +313,11 @@ void setExtraDmemInMbytes(int value, bool is_game_specific) {
                      : extraDmemInMbytes.base_value = 0;
 }
 
-uint64_t getsupportedUserMax() {
+u64 getsupportedUserMax() {
     return supportedUserMax.get();
 }
 
-void setsupportedUserMax(uint64_t value) {
+void setsupportedUserMax(u64 value) {
     supportedUserMax.base_value = value;
 }
 
