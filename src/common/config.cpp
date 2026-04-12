@@ -67,6 +67,10 @@ std::optional<T> get_optional(const toml::value& v, const std::string& key) {
         if (it->second.is_boolean()) {
             return toml::get<bool>(it->second);
         }
+    } else if constexpr (std::is_same_v<T, u64>) {
+        if (it->second.is_integer()) {
+            return static_cast<u64>(toml::get<u64>(it->second));
+        }
     } else {
         static_assert([] { return false; }(), "Unsupported type in get_optional<T>");
     }
@@ -136,6 +140,7 @@ static ConfigEntry<int> volumeSlider(100);
 static ConfigEntry<bool> isNeo(false);
 static ConfigEntry<bool> isDevKit(false);
 static ConfigEntry<int> extraDmemInMbytes(0);
+static ConfigEntry<u64> supportedUserMax(0x7000000000);
 static ConfigEntry<bool> isPSNSignedIn(false);
 static ConfigEntry<bool> isTrophyPopupDisabled(false);
 static ConfigEntry<double> trophyNotificationDuration(6.0);
@@ -322,6 +327,14 @@ void setExtraDmemInMbytes(int value, bool is_game_specific) {
     // Disable setting in global config
     is_game_specific ? extraDmemInMbytes.game_specific_value = value
                      : extraDmemInMbytes.base_value = 0;
+}
+
+u64 getsupportedUserMax() {
+    return supportedUserMax.get();
+}
+
+void setsupportedUserMax(u64 value) {
+    supportedUserMax.base_value = value;
 }
 
 bool getIsFullscreen() {
@@ -895,6 +908,7 @@ void load(const std::filesystem::path& path, bool is_game_specific) {
         if (is_game_specific) { // do not get this value from the base config
             extraDmemInMbytes.setFromToml(general, "extraDmemInMbytes", is_game_specific);
         }
+        supportedUserMax.setFromToml(general, "supportedUserMax", is_game_specific);
         isPSNSignedIn.setFromToml(general, "isPSNSignedIn", is_game_specific);
         isTrophyPopupDisabled.setFromToml(general, "isTrophyPopupDisabled", is_game_specific);
         trophyNotificationDuration.setFromToml(general, "trophyNotificationDuration",
@@ -1100,6 +1114,7 @@ void save(const std::filesystem::path& path, bool is_game_specific) {
     if (is_game_specific) {
         extraDmemInMbytes.setTomlValue(data, "General", "extraDmemInMbytes", is_game_specific);
     }
+    supportedUserMax.setTomlValue(data, "General", "supportedUserMax", is_game_specific);
     isPSNSignedIn.setTomlValue(data, "General", "isPSNSignedIn", is_game_specific);
     isConnectedToNetwork.setTomlValue(data, "General", "isConnectedToNetwork", is_game_specific);
 
@@ -1239,6 +1254,7 @@ void setDefaultValues(bool is_game_specific) {
     userName.set("shadPS4", is_game_specific);
     isShowSplash.set(false, is_game_specific);
     isSideTrophy.set("right", is_game_specific);
+    supportedUserMax.set(0x7000000000, is_game_specific);
 
     // GS - Input
     cursorState.set(HideCursorState::Idle, is_game_specific);
