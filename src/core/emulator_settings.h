@@ -218,7 +218,7 @@ struct GeneralSettings {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GeneralSettings, install_dirs, addon_install_dir, home_dir,
                                    sys_modules_dir, font_dir, volume_slider, neo_mode, dev_kit_mode,
-                                   extra_dmem_in_mbytes, psn_signed_in, trophy_popup_disabled,
+                                   extra_dmem_in_mbytes, supported_user_max ,psn_signed_in, trophy_popup_disabled,
                                    trophy_notification_duration, log_filter, log_type, show_splash,
                                    identical_log_grouped, trophy_notification_side,
                                    connected_to_network, discord_rpc_enabled, show_fps_counter,
