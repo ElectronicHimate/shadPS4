@@ -141,7 +141,7 @@ struct AddressSpace::Impl {
         }
 
         // Determine the free address ranges we can access.
-        VAddr next_addr = 0x100000000ULL;
+        VAddr next_addr = 0x80000000ULL;
         MEMORY_BASIC_INFORMATION info{};
         while (next_addr <= supported_user_max) {
             ASSERT_MSG(VirtualQuery(reinterpret_cast<PVOID>(next_addr), &info, sizeof(info)),
